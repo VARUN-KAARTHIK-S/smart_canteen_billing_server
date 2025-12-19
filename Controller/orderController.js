@@ -17,10 +17,13 @@ export const createOrder = async (req, res) => {
         await order.save();
 
         // Update inventory
+        console.log("Updating inventory for items:", items);
         for (const item of items) {
-            await Menu.findByIdAndUpdate(item._id, {
+            console.log(`Decrementing quantity for ${item.name} (${item._id}) by ${item.cartQuantity}`);
+            const updatedMenu = await Menu.findByIdAndUpdate(item._id, {
                 $inc: { quantity: -item.cartQuantity }
-            });
+            }, { new: true }); // Get updated doc to verify
+            console.log(`Updated menu item:`, updatedMenu);
         }
 
         res.status(201).json({ message: "Order created successfully", order });
