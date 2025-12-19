@@ -1,8 +1,11 @@
 import Order from "../Model/orderModel.js";
+import Menu from "../Model/menuModel.js";
 
 export const createOrder = async (req, res) => {
     try {
         const { orderId, userId, items, total, userEmail, userName } = req.body;
+
+        // Create the order
         const order = new Order({
             orderId,
             userId,
@@ -12,6 +15,14 @@ export const createOrder = async (req, res) => {
             userName
         });
         await order.save();
+
+        // Update inventory
+        for (const item of items) {
+            await Menu.findByIdAndUpdate(item._id, {
+                $inc: { quantity: -item.cartQuantity }
+            });
+        }
+
         res.status(201).json({ message: "Order created successfully", order });
     } catch (error) {
         res.status(500).json({ message: error.message });
